@@ -30,3 +30,27 @@ class Character(db.Model):
             "id": self.id,
             "name": self.name,
         }
+    
+    def get_characters():
+        characters = Character.query.all()
+        all_characters = list(map(lambda x: x.serialize(), characters))
+        return(all_characters)
+
+
+class Planet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique=True, nullable=False)
+
+    def __repr__(self):
+        return '<Planet %r>' % self.name
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+        }
+    
+    def get_planets():
+        planets = Planet.query.all()
+        all_planets = list(map(lambda x: x.serialize(), planets))
+        return(all_planets)
