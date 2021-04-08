@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, Character, Planet
+from models import db, User, Character, Planet, Favorite
 import json
 #from models import Person
 
@@ -31,6 +31,8 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+# USER CRUD    
+
 @app.route('/user', methods=['GET'])
 def handle_hello():
 
@@ -39,9 +41,14 @@ def handle_hello():
 
     return jsonify(all_users), 200
 
+# CHARACTER CRUD    
+
 @app.route('/character', methods=['GET'])
 def handle_character():
-    return jsonify(Character.get_characters()), 200
+    characters = Character.query.all()
+    all_characters = list(map(lambda x: x.serialize(), characters))
+    return jsonify(all_characters), 200
+
 
 @app.route('/character', methods=['POST'])
 def create_character():
@@ -51,9 +58,13 @@ def create_character():
     db.session.commit()
     return jsonify(body), 200
 
+# PLANET CRUD    
+
 @app.route('/planet', methods=['GET'])
 def handle_planet():
-    return jsonify(Planet.get_planets()), 200
+    planets = Planet.query.all()
+    all_planets = list(map(lambda x: x.serialize(), planets))
+    return jsonify(all_planets), 200
 
 @app.route('/planet', methods=['POST'])
 def create_planet():
@@ -62,6 +73,31 @@ def create_planet():
     db.session.add(new_planet)
     db.session.commit()
     return jsonify(body), 200
+
+# FAVORITE CRUD        
+
+@app.route('/favorite', methods=['GET'])
+def handle_favorite():
+    favorites = Favorite.query.all()
+    all_favorites = list(map(lambda x: x.serialize(), favorites))
+    return jsonify(all_favorites), 200
+
+@app.route('/favorite', methods=['POST'])
+def create_favorite():
+    body = request.get_json()
+    new_favorite = Favorite(name=body["name"], category=body["category"])
+    db.session.add(new_favorite)
+    db.session.commit()
+    return jsonify(body), 200
+
+@app.route('/favorite/<int:id>', methods=['DELETE'])
+def delete_favorite(id):
+    favorite = Favorite.query.get(id)
+    if favorite is None:
+        raise APIException('Favorite not found', status_code=404)
+    db.session.delete(favorite)
+    db.session.commit()
+    return jsonify("ok"), 200
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':

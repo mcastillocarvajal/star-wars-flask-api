@@ -7,6 +7,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), unique=False, nullable=False)
     is_active = db.Column(db.Boolean(), unique=False, nullable=False)
+    favorites = db.relationship('Favorite', lazy=True)
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -21,6 +22,7 @@ class User(db.Model):
 class Character(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True, nullable=False)
+    category = db.Column(db.String(30))
     gender = db.Column(db.String(30))
     height = db.Column(db.Integer)
     birth_year = db.Column(db.String(30))
@@ -36,6 +38,7 @@ class Character(db.Model):
         return {
             "id": self.id,
             "name": self.name,
+            "category": self.category,
             "gender": self.gender,
             "height": self.height,
             "birth_year": self.birth_year,
@@ -44,16 +47,12 @@ class Character(db.Model):
             "skin_color": self.skin_color,
             "eye_color": self.eye_color,
         }
-    
-    def get_characters():
-        characters = Character.query.all()
-        all_characters = list(map(lambda x: x.serialize(), characters))
-        return(all_characters)
 
 
 class Planet(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True, nullable=False)
+    category = db.Column(db.String(30))
     climate = db.Column(db.String(30))
     diameter = db.Column(db.Integer)
     gravity = db.Column(db.String(30))
@@ -68,6 +67,7 @@ class Planet(db.Model):
         return {
             "id": self.id,
             "name": self.name,
+            "category": self.category,
             "climate": self.climate,
             "diameter": self.diameter,
             "gravity": self.gravity,
@@ -76,7 +76,20 @@ class Planet(db.Model):
             "population": self.population,
         }
     
-    def get_planets():
-        planets = Planet.query.all()
-        all_planets = list(map(lambda x: x.serialize(), planets))
-        return(all_planets)
+    
+class Favorite(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique=True, nullable=False)
+    category= db.Column(db.String(30), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+
+    def __repr__(self):
+        return '<Favorite %r>' % self.name
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "name": self.name,
+            "category": self.category,
+        }
