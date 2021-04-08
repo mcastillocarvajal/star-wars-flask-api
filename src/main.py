@@ -10,12 +10,20 @@ from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User, Character, Planet, Favorite
 import json
-#from models import Person
+from flask_jwt_extended import create_access_token
+from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import jwt_required
+from flask_jwt_extended import JWTManager
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_CONNECTION_STRING')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Setup the Flask-JWT-Extended extension
+app.config["JWT_SECRET_KEY"] = os.environ.get('FLASK_APP_KEY', 'jdysoBSjGJS48Sis')
+jwt = JWTManager(app)
+
 MIGRATE = Migrate(app, db)
 db.init_app(app)
 CORS(app)
@@ -31,10 +39,30 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+# Create a route to authenticate your users and return JWTs. The
+# create_access_token() function is used to actually generate the JWT.
+@app.route("/login", methods=["POST"])
+def login():
+    email = request.json.get("email", None)
+    password = request.json.get("password", None)
+    if email != "test" or password != "test":
+        return jsonify({"msg": "Bad email or password"}), 401
+
+    access_token = create_access_token(identity=email)
+    return jsonify(access_token=access_token)
+    
+
 # USER CRUD    
 
 @app.route('/user', methods=['GET'])
-def handle_hello():
+@jwt_required()
+
+def protected():
+    # Access the identity of the current user with get_jwt_identity
+    current_user = get_jwt_identity()
+
+    return jsonify(logged_in_as=current_user), 200
+def handle_user():
 
     users = User.query.all()
     all_users = list(map(lambda x: x.serialize(), users))
