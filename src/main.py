@@ -9,6 +9,7 @@ from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User, Character, Planet
+import json
 #from models import Person
 
 app = Flask(__name__)
@@ -42,9 +43,25 @@ def handle_hello():
 def handle_character():
     return jsonify(Character.get_characters()), 200
 
+@app.route('/character', methods=['POST'])
+def create_character():
+    body = request.get_json()
+    new_character = Character(name=body["name"], gender=body["gender"], height=body["height"], birth_year=body["birth_year"], mass=body["mass"], hair_color=body["hair_color"], skin_color=body["skin_color"], eye_color=body["eye_color"])
+    db.session.add(new_character)
+    db.session.commit()
+    return jsonify(body), 200
+
 @app.route('/planet', methods=['GET'])
 def handle_planet():
     return jsonify(Planet.get_planets()), 200
+
+@app.route('/planet', methods=['POST'])
+def create_planet():
+    body = request.get_json()
+    new_planet = Planet(name=body["name"], climate=body["climate"], diameter=body["diameter"], gravity=body["gravity"], terrain=body["terrain"], surface_water=body["surface_water"], population=body["population"])
+    db.session.add(new_planet)
+    db.session.commit()
+    return jsonify(body), 200
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
