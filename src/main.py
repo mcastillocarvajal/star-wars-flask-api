@@ -39,8 +39,12 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+
+
 # Create a route to authenticate your users and return JWTs. The
 # create_access_token() function is used to actually generate the JWT.
+
+
 @app.route("/login", methods=["POST"])
 def login():
     email = request.json.get("email", None)
@@ -54,30 +58,39 @@ def login():
 
 # USER CRUD    
 
+
 @app.route('/user', methods=['GET'])
 @jwt_required()
-
-def protected():
+def handle_user():
     # Access the identity of the current user with get_jwt_identity
     current_user = get_jwt_identity()
-
-    return jsonify(logged_in_as=current_user), 200
-def handle_user():
-
+    print(">>>LOGGED AS ", current_user)
     users = User.query.all()
     all_users = list(map(lambda x: x.serialize(), users))
-
     return jsonify(all_users), 200
+
 
 @app.route('/user/<int:id>', methods=['GET'])
 @jwt_required()
-
-def handle_user(id):
+def handle_single_user(id):
     current_user = get_jwt_identity()
     user = User.query.get(id)
-    return jsonify("ok"), 200
+    if user is None:
+        raise APIException('User not found', status_code=404)
+    return jsonify(user.serialize()), 200
+
+
+@app.route('/user', methods=['POST'])
+def create_user():
+    body = request.get_json()
+    new_user = User(email=body["email"], username=body["username"], password=body["password"])
+    db.session.add(new_user)
+    db.session.commit()
+    return jsonify(body), 200
+
 
 # CHARACTER CRUD    
+
 
 @app.route('/character', methods=['GET'])
 def handle_character():
@@ -94,7 +107,9 @@ def create_character():
     db.session.commit()
     return jsonify(body), 200
 
+
 # PLANET CRUD    
+
 
 @app.route('/planet', methods=['GET'])
 def handle_planet():
@@ -110,7 +125,9 @@ def create_planet():
     db.session.commit()
     return jsonify(body), 200
 
-# FAVORITE CRUD        
+
+# FAVORITE CRUD   
+
 
 @app.route('/favorite', methods=['GET'])
 def handle_favorite():
@@ -133,7 +150,12 @@ def delete_favorite(id):
         raise APIException('Favorite not found', status_code=404)
     db.session.delete(favorite)
     db.session.commit()
-    return jsonify("ok"), 200
+    response = { "msg" : "Favorite deleted successfully" }
+    return jsonify(response), 200
+
+
+
+
 
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
