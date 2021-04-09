@@ -69,6 +69,14 @@ def handle_user():
 
     return jsonify(all_users), 200
 
+@app.route('/user/<int:id>', methods=['GET'])
+@jwt_required()
+
+def handle_user(id):
+    current_user = get_jwt_identity()
+    user = User.query.get(id)
+    return jsonify("ok"), 200
+
 # CHARACTER CRUD    
 
 @app.route('/character', methods=['GET'])

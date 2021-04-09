@@ -18,6 +18,23 @@ class User(db.Model):
             "email": self.email,
         }
 
+class Favorite(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), nullable=False)
+    category= db.Column(db.String(30), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
+
+    def __repr__(self):
+        return '<Favorite %r>' % self.name
+
+    def serialize(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "name": self.name,
+            "category": self.category,
+        }
+
 
 class Character(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -74,22 +91,4 @@ class Planet(db.Model):
             "terrain": self.terrain,
             "surface_water": self.surface_water,
             "population": self.population,
-        }
-    
-    
-class Favorite(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120), unique=True, nullable=False)
-    category= db.Column(db.String(30), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"))
-
-    def __repr__(self):
-        return '<Favorite %r>' % self.name
-
-    def serialize(self):
-        return {
-            "id": self.id,
-            "user_id": self.user_id,
-            "name": self.name,
-            "category": self.category,
         }
