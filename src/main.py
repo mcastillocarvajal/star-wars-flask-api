@@ -60,7 +60,6 @@ def login():
 
 
 @app.route('/user', methods=['GET'])
-@jwt_required()
 def handle_user():
     # Access the identity of the current user with get_jwt_identity
     current_user = get_jwt_identity()
@@ -136,15 +135,19 @@ def handle_favorite():
     return jsonify(all_favorites), 200
 
 @app.route('/favorite', methods=['POST'])
+@jwt_required()
 def create_favorite():
+    current_user = get_jwt_identity()
     body = request.get_json()
-    new_favorite = Favorite(name=body["name"], category=body["category"])
+    new_favorite = Favorite(name=body["name"], category=body["category"], user_id=body["user_id"])
     db.session.add(new_favorite)
     db.session.commit()
     return jsonify(body), 200
 
 @app.route('/favorite/<int:id>', methods=['DELETE'])
+@jwt_required()
 def delete_favorite(id):
+    current_user = get_jwt_identity()
     favorite = Favorite.query.get(id)
     if favorite is None:
         raise APIException('Favorite not found', status_code=404)
