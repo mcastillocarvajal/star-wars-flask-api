@@ -18,6 +18,7 @@ class User(db.Model):
             "id": self.id,
             "email": self.email,
             "username": self.username,
+            "favorites": list(map(lambda x: x.serialize(), self.favorites)),
         }
 
 class Favorite(db.Model):

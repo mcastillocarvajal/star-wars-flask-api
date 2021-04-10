@@ -21,7 +21,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_CONNECTION_STRING')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Setup the Flask-JWT-Extended extension
-app.config["JWT_SECRET_KEY"] = os.environ.get('FLASK_APP_KEY', 'jdysoBSjGJS48Sis')
+app.config["JWT_SECRET_KEY"] = os.environ.get('FLASK_APP_KEY')
 jwt = JWTManager(app)
 
 MIGRATE = Migrate(app, db)
@@ -49,8 +49,10 @@ def sitemap():
 def login():
     email = request.json.get("email", None)
     password = request.json.get("password", None)
-    if email != "test" or password != "test":
-        return jsonify({"msg": "Bad email or password"}), 401
+    user = User.query.filter_by(email=email, password=password).first()
+
+    if user is None:
+         return jsonify({"msg": "Bad username or password"}), 401
 
     access_token = create_access_token(identity=email)
     return jsonify(access_token=access_token)
@@ -62,17 +64,13 @@ def login():
 @app.route('/user', methods=['GET'])
 def handle_user():
     # Access the identity of the current user with get_jwt_identity
-    current_user = get_jwt_identity()
-    print(">>>LOGGED AS ", current_user)
     users = User.query.all()
     all_users = list(map(lambda x: x.serialize(), users))
     return jsonify(all_users), 200
 
 
 @app.route('/user/<int:id>', methods=['GET'])
-@jwt_required()
 def handle_single_user(id):
-    current_user = get_jwt_identity()
     user = User.query.get(id)
     if user is None:
         raise APIException('User not found', status_code=404)
