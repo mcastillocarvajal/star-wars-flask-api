@@ -62,11 +62,12 @@ def login():
 
 
 @app.route('/user', methods=['GET'])
+@jwt_required()
 def handle_user():
-    # Access the identity of the current user with get_jwt_identity
-    users = User.query.all()
-    all_users = list(map(lambda x: x.serialize(), users))
-    return jsonify(all_users), 200
+
+    current_user = get_jwt_identity()
+    user = User.query.filter_by(email=current_user).first()
+    return jsonify(user.serialize()), 200
 
 
 @app.route('/user/<int:id>', methods=['GET'])
