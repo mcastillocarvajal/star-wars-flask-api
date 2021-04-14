@@ -87,6 +87,41 @@ def create_user():
     return jsonify(body), 200
 
 
+# FAVORITE CRUD   
+
+
+@app.route('/favorite', methods=['GET'])
+@jwt_required()
+def handle_favorite():
+    favorites = Favorite.query.all()
+    all_favorites = list(map(lambda x: x.serialize(), favorites))
+    return jsonify(all_favorites), 200
+
+@app.route('/favorite', methods=['POST'])
+@jwt_required()
+def create_favorite():
+
+    body = request.get_json()
+    new_favorite = Favorite(name=body["name"], category=body["category"], user_id=body["user_id"])
+    db.session.add(new_favorite)
+    db.session.commit()
+    favorites = Favorite.query.all()
+    all_favorites = list(map(lambda x: x.serialize(), favorites))
+    return jsonify(all_favorites), 200
+
+@app.route('/favorite/<int:id>', methods=['DELETE'])
+@jwt_required()
+def delete_favorite(id):
+
+    favorite = Favorite.query.get(id)
+    if favorite is None:
+        raise APIException('Favorite not found', status_code=404)
+    db.session.delete(favorite)
+    db.session.commit()
+    response = { "msg" : "Favorite deleted successfully" }
+    return jsonify(response), 200
+
+
 # CHARACTER CRUD    
 
 
@@ -122,40 +157,6 @@ def create_planet():
     db.session.add(new_planet)
     db.session.commit()
     return jsonify(body), 200
-
-
-# FAVORITE CRUD   
-
-
-@app.route('/favorite', methods=['GET'])
-def handle_favorite():
-    favorites = Favorite.query.all()
-    all_favorites = list(map(lambda x: x.serialize(), favorites))
-    return jsonify(all_favorites), 200
-
-@app.route('/favorite', methods=['POST'])
-@jwt_required()
-def create_favorite():
-    current_user = get_jwt_identity()
-    body = request.get_json()
-    new_favorite = Favorite(name=body["name"], category=body["category"], user_id=body["user_id"])
-    db.session.add(new_favorite)
-    db.session.commit()
-    return jsonify(body), 200
-
-@app.route('/favorite/<int:id>', methods=['DELETE'])
-@jwt_required()
-def delete_favorite(id):
-    current_user = get_jwt_identity()
-    favorite = Favorite.query.get(id)
-    if favorite is None:
-        raise APIException('Favorite not found', status_code=404)
-    db.session.delete(favorite)
-    db.session.commit()
-    response = { "msg" : "Favorite deleted successfully" }
-    return jsonify(response), 200
-
-
 
 
 
